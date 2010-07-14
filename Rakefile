@@ -34,6 +34,8 @@ end
 
 ### Tasks
 
+task :default => :patch
+
 desc 'Apply patches from patch directory'
 task :patch => 'download:patches' do
   patchlevel = Bash.patchlevel
