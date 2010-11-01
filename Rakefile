@@ -57,7 +57,7 @@ namespace :download do
         ftp.passive = true
         ftp.login
         ftp.nlst("#{uri.path}/bash-#{Git.current_branch}-patches").each do |f|
-          next if File.extname(f) == '.sig' || File.exists?(File.basename f)
+          next if File.extname(f) == '.sig' or File.exists? File.basename f
           warn "-> #{uri.host}/#{f}"
           ftp.get f
         end
