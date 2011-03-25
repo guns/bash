@@ -6,28 +6,20 @@ require 'shellwords'
 
 verbose false
 
-# an Enumerable collection of URIs
-@ftp_mirrors = %w[
-  ftp://ftp.gnu.org/gnu/bash
-  ftp://ftp.cwru.edu/pub/bash
-].map { |url| URI.parse url }.each
-
-module Bash
-  def self.patchlevel
-    File.read('patchlevel.h')[/^#define\s+PATCHLEVEL\s+(\d+)/, 1].to_i
-  end
+def ftp_mirrors
+  @ftp_mirrors ||= %w[
+    ftp://ftp.gnu.org/gnu/bash
+    ftp://ftp.cwru.edu/pub/bash
+  ].map { |url| URI.parse url }
 end
 
-module Git
-  def self.git
-    @gitbin ||= %x(which git).chomp
-    raise 'No git executable found!' unless File.executable? @gitbin
-    @gitbin
-  end
+def patchlevel
+  @patchlevel ||= File.read('patchlevel.h')[/^#define\s+PATCHLEVEL\s+(\d+)/, 1].to_i
+end
 
-  # Branch names are major.minor version numbers
-  def self.current_branch
-    b = %x(#{self.git} symbolic-ref HEAD 2>/dev/null).chomp
+def current_branch
+  @current_branch ||= begin
+    b = %x(git symbolic-ref HEAD 2>/dev/null).chomp
     $?.exitstatus.zero? ? b[/^refs\/heads\/(.*)/, 1] : nil
   end
 end
@@ -37,31 +29,38 @@ end
 task :default => :patch
 
 desc 'Apply patches from patch directory'
-task :patch => 'download:patches' do
-  patchlevel = Bash.patchlevel
-  Dir['patches/*'].sort.each do |f|
+task :patch => 'patch:download' do
+  Dir['patch/*'].sort.each do |f|
     next if f[/-(\d+)$/, 1].to_i <= patchlevel
-    warn "### Applying patch #{f}"
-    system "patch -p0 --version-control never < #{f.shellescape}"
+    warn "### Applying #{f}"
+    system "patch -p0 < #{f.shellescape}"
   end
 end
 
-namespace :download do
+namespace :patch do
   desc 'Download patches for the current release'
-  task :patches do
-    mkdir_p 'patches'
-    uri = @ftp_mirrors.next
-    warn "### Downloading patches from #{uri.host}"
-    Dir.chdir 'patches' do
-      Net::FTP.open uri.host do |ftp|
-        ftp.passive = true
-        ftp.login
-        ftp.nlst("#{uri.path}/bash-#{Git.current_branch}-patches").each do |f|
-          next if File.extname(f) == '.sig' or File.exists? File.basename f
-          warn "-> #{uri.host}/#{f}"
-          ftp.get f
+  task :download do
+    list = ftp_mirrors.dup
+    uri  = list.shift
+
+    begin
+      warn "### Downloading patches from #{uri.host}"
+      mkdir_p 'patch'
+
+      Dir.chdir 'patch' do
+        Net::FTP.open uri.host do |ftp|
+          ftp.passive = true
+          ftp.login
+          ftp.nlst("#{uri.path}/bash-#{current_branch}-patches").each do |f|
+            next if File.extname(f) == '.sig' or File.exists? File.basename f
+            warn "-> #{uri.host}/#{f}"
+            ftp.get f
+          end
         end
       end
+    rescue
+      uri = list.shift
+      retry if uri
     end
   end
 end
