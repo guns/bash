@@ -26,7 +26,18 @@ end
 
 ### Tasks
 
-task :default => :patch
+task :default => :configure
+
+desc 'Configure bash'
+task :configure do
+  cmd = %W[
+    #{File.expand_path 'configure'}
+    --prefix=#{ENV['PREFIX'] || '/opt/bash'}
+  ]
+
+  puts cmd.join(' ')
+  system *cmd
+end
 
 desc 'Apply patches from patch directory'
 task :patch => 'patch:download' do
