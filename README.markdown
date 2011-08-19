@@ -8,11 +8,11 @@
                   |                  |
                   |  Guns' bash repo |
                   |                  |
-                  |    killed by a   |
-                  |       GNU        |
+                  |     killed by    |
+                  |       bkuhn      |
                   |                  |
                   |       2011       |
                  *|     *  *  *      | *
         _________)/\\_//(\/(/\)/\//\/|_)_______
 
-      git clone git://git.savannah.gnu.org/bash.git
+      git clone https://git.gitorious.org/bash/bash.git
