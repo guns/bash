@@ -9,10 +9,12 @@
                   |  Guns' bash repo |
                   |                  |
                   |     killed by    |
-                  |       bkuhn      |
+                  |    chet.ramey    |
                   |                  |
                   |       2011       |
                  *|     *  *  *      | *
         _________)/\\_//(\/(/\)/\//\/|_)_______
 
-      git clone https://git.gitorious.org/bash/bash.git
+      http://osdir.com/ml/bug-bash-gnu/2011-11/msg00158.html
+
+      git clone http://git.savannah.gnu.org/cgit/bash.git
